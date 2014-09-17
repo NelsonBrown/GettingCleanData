@@ -61,4 +61,12 @@ tidyData <- cbind(subjects, activities, measures)
 
 # Write out the tidy data file
 
-write.table(tidyData, "c:\\coursera\\R\\merged_clean_data.txt")
+write.table(tidyData, "c:\\coursera\\R\\RunAnalysisDataFile1.txt")
+
+# Create data set of averages of each activity by each participant
+
+library(plyr)
+
+averages <- ddply(tidyData, c("subject", "activity"), numcolwise(mean))
+
+write.table (averages, "c:\\coursera\\data\\RunAnalysisaverage.txt",row.name=FALSE)
