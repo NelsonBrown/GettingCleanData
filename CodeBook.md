@@ -5,78 +5,50 @@ date: "Tuesday, September 16, 2014"
 output: html_document
 ---
 
-This is the codebook that provides the description of the course project, the source of the data, the data descriptions and the operations performed on the data to arrive with the resulting measurement data set.
+The original data source was downloaded from:
 
-The original data source was from an experiment conducted by;
+( https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip )
 
-        Jorge L. Reyes-Ortiz, Davide Anguita, Alessandro Ghio, Luca Oneto.
-        Smartlab - Non Linear Complex Systems Laboratory
-        DITEN - Università degli Studi di Genova.
-        Via Opera Pia 11A, I-16145, Genoa, Italy.
-        activityrecognition@smartlab.ws
-        www.smartlab.ws
-        
-Titled:
+This zip file was unzipped to the "c:\\coursera\data\\" directory
 
-        Human Activity Recognition Using Smartphones Dataset
-        Version 1.0
-        
 Data Set Information:
 
-The experiments have been carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data. 
+Measurements were taken for a group of 30 volunteers within an age bracket of 19-48 years. 
+Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. 
 
-The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain. 
 
-        
 
-The following zip file was downloaded and unzipped to a directory named "C:\\Coursera\\data\\UCI HAR Dataset".
-
-        https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
-        
-A full description of the experiment can be found at:
-
-        http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones 
-        
 The R program used to create these datasets is run_analysis.R. It is located in the "C:\\Coursera\\R" directory.        
         
 The UCI HAR Dataset directory contains multiple files and directories.
 
-The directories are test and train. These subdirectories contain the data resulting from the two parts of the experiment, testing and training.
+The directories are test and train. These subdirectories contain the data resulting from the two parts of the experiment, testing and training.  
 
-        Test contains 2947 observations in three files; 
-        
-                        subject_test.txt identifies the subject being measured. 
-                        
-                                30 subjects aged 19-48 years.
-                        
-                        x_test.txt contains 561 different measures.
-                        
-                        y_test identifies the activity being measured.
-                        
-                                1 WALKING
-                                2 WALKING_UPSTAIRS
-                                3 WALKING_DOWNSTAIRS
-                                4 SITTING
-                                5 STANDING
-                                6 LAYING
+The test directory contains 2947 observations in three files; 
+        subject_test.txt identifies the subject being measured.   
+        x_test.txt contains 561 different measures times 2947 = 1,653,267 measures.  
+        y_test identifies the activity being measured.  
+                1 identifies WALKING  
+                2 identifies WALKING_UPSTAIRS  
+                3 identifies WALKING_DOWNSTAIRS
+                4 identifies SITTING
+                5 identifies STANDING
+                6 identifies LAYING
 
-        Train contains 7,352 observations in three files; 
-        
-                        subject_train.txt identifies the subject being measured. 
+The train directory contains 7,352 observations in three files; 
+        subject_train.txt identifies the subject being measured. 
+        x_train.txt contains 561 different measures times 7352 = 4,124,472 measures.
+        y_train identifies the activity being measured.
                         
-                                30 subjects aged 19-48 years.
-                        
-                        x_train.txt contains 561 different measures.
-                        
-                        y_train identifies the activity being measured.
-                        
-                                1 WALKING
-                                2 WALKING_UPSTAIRS
-                                3 WALKING_DOWNSTAIRS
-                                4 SITTING
-                                5 STANDING
-                                6 LAYING
+                1 identifies WALKING  
+                2 identifies WALKING_UPSTAIRS  
+                3 identifies WALKING_DOWNSTAIRS
+                4 identifies SITTING
+                5 identifies STANDING
+                6 identifies LAYING
                                 
+The x_test.txt and x_train.txt files were read into memory and combined using the rbind function resulting in a 10299x561 data frame.
+
 This project is only interested in the measurements of mean and standard deviation.
 
 The measurement descriptions are contained in a file named features.txt in the C:\\Coursera\\data\\UCI HAR Dataset\ directory.
@@ -93,13 +65,65 @@ features <- read.table("C:\\Coursera\\data\\UCI HAR Dataset\\features.txt")
 
 In order to subset the observation data we used the grep function to identify those measurements of mean and std (standard deviation). 
 
-validMeasures <- grep("-mean\\(|-std\\(",features[,2]).
+validMeasures <- grep("-mean\\(|-std\\(",features[,2]) which returned 66 measures.
 
 validMeasures was then used to subset the measurement observation data.
 
-measures <- measures[, validMeasures]
+measures <- measures[, validMeasures] giving us a 10299x66 data frame 
 
-Once the observations have been trimmed to the relevant measures the subject and activity are joined to the measurement data and the column names replaced with the measurement descriptions from features.txt minus the "(", ")" characters.
-        
-                        
+The validMeasures was then used to subset the features data frame to retrieve the names of the 66 desired measurements.
+
+names(measures) <- features[validMeasures,2]
+
+These are used to name the measures columns minus the parenthesis.
+
+names(measures) <- gsub("\\(\\)","",names(measures))
+
+subject and activity are joined to the measurement data   
+
+# Read the activity files into memory
+
+ytrain <- read.table(".\\train\\y_train.txt")
+ytest <- read.table(".\\test\\y_test.txt")
+
+# Combine the acivities
+
+activities <- rbind(ytrain, ytest)
+
+# Read the activity descriptions
+
+activity <- read.table("activity_labels.txt")
+
+activities [,1] = activity[activities[,1], 2]
+
+names(activities) <- "activity"
+
+# Read the Subject file into memory
+
+strain <- read.table(".\\train\\subject_train.txt")
+stest <- read.table(".\\test\\subject_test.txt")
+
+subjects <- rbind(strain, stest)
+
+# name the subject table column
+
+names(subjects) <- "subject"
+
+# Merge the files to create the tidyData data frame
+
+tidyData <- cbind(subjects, activities, measures)
+
+  # Write out the tidy data file
+
+write.table(tidyData, "c:\\coursera\\R\\RunAnalysisDataFile1.txt")
+
+# Create data set of averages of each activity by each participant
+
+library(plyr)
+
+averages <- ddply(tidyData, c("subject", "activity"), numcolwise(mean))
+
+  # Write out the averages data file
+
+write.table (averages, "c:\\coursera\\data\\RunAnalysisaverage.txt",row.name=FALSE)                      
                         
